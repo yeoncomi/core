@@ -13,6 +13,13 @@ from .const import REQUIRED_PYTHON_VER, RESTART_EXIT_CODE, __version__
 FAULT_LOG_FILENAME = "home-assistant.log.fault"
 
 
+def validate_os() -> None:
+    """Validate that Home Assistant is running in a supported operating system."""
+    if not sys.platform.startswith("darwin") and not sys.platform.startswith("linux"):
+        print("Home Assistant only supports Linux, OSX and Windows using WSL")
+        sys.exit(1)
+
+
 def validate_python() -> None:
     """Validate that the right Python version is running."""
     if sys.version_info[:3] < REQUIRED_PYTHON_VER:
@@ -118,6 +125,11 @@ def get_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--script", nargs=argparse.REMAINDER, help="Run one of the embedded scripts"
+    )
+    parser.add_argument(
+        "--ignore-os-check",
+        action="store_true",
+        help="Skips validation of operating system",
     )
     if os.name == "posix":
         parser.add_argument(
@@ -267,6 +279,9 @@ def main() -> int:
     validate_python()
 
     args = get_arguments()
+
+    if not args.ignore_os_check:
+        validate_os()
 
     if args.script is not None:
         # pylint: disable=import-outside-toplevel
